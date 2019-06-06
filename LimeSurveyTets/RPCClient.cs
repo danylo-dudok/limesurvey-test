@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using LimeSurveyTest.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -33,7 +34,7 @@ namespace LimeSurveyTest
 
         public async Task<RPCResponse> Login()
         {
-            var result = await RequestAuthRPC(
+            var result = await RequestRPC(
                 "get_session_key",
                 ("username", _username),
                 ("password", _password)
@@ -72,6 +73,17 @@ namespace LimeSurveyTest
                 ("sImportDataType", dataType),
                 ("sNewGroupName", groupName),
                 ("sNewGroupDescription", groupDescription)
+                );
+
+        public Task<RPCResponse> ImportQuestion(int surveyId, int groupId, string data, string dataType, string questionTitle, bool isMandatory = false) =>
+            RequestAuthRPC(
+                "import_question",
+                ("iSurveyID", surveyId.ToString()),
+                ("iGroupID", groupId.ToString()),
+                ("sImportData", data),
+                ("sImportDataType", dataType),
+                ("sNewQuestionTitle", questionTitle),
+                ("sMandatory", isMandatory ? 'Y' : 'N')
                 );
 
         public Task<RPCResponse> AddSurvey(int surveyId, string title, string language) =>
@@ -117,6 +129,46 @@ namespace LimeSurveyTest
                 ("sSetttingName", settingName)
                 );
 
+        public async Task<SurveyInfo> GetSurveyProperties(int surveyId)
+        {
+            var result = await RequestAuthRPC(
+                "get_survey_properties",
+                ("iSurveyID", surveyId.ToString())
+                );
+
+            return JsonConvert.DeserializeObject<SurveyInfo>(result.Result.ToString());
+        }
+
+        public async Task<GroupInfo> GetGroupProperties(int groupId)
+        {
+            var result = await RequestAuthRPC(
+                "get_group_properties",
+                ("iGroupID", groupId.ToString())
+                );
+
+            return JsonConvert.DeserializeObject<GroupInfo>(result.Result.ToString());
+        }
+
+        public async Task<LanguageInfo> GetLanguageProperties(int surveyId)
+        {
+            var result = await RequestAuthRPC(
+                "get_language_properties",
+                ("iSurveyID", surveyId.ToString())
+                );
+
+            return JsonConvert.DeserializeObject<LanguageInfo>(result.Result.ToString());
+        }
+
+        public async Task<QuestionInfo> GetQuestionProperties(int questionId)
+        {
+            var result = await RequestAuthRPC(
+                "get_question_properties",
+                ("iQuestionID", questionId.ToString())
+                );
+
+            return JsonConvert.DeserializeObject<QuestionInfo>(result.Result.ToString());
+        }
+
         public Task<RPCResponse> UploadFile(int surveyId, string fieldName, string fileName, string fileContent) =>
             RequestAuthRPC(
                 "upload_file",
@@ -138,6 +190,13 @@ namespace LimeSurveyTest
                             ).ToArray()
                         )
                 ));
+
+        public Task<RPCResponse> SetSurveyProperties(int surveyId, SurveyInfo properties) =>
+            RequestAuthRPC(
+                "set_survey_properties",
+                ("iSurveyID", surveyId.ToString()),
+                ("aSurveyData", JsonConvert.SerializeObject(properties))
+                );
 
         //public Task<RPCResponse> SetQuestionProperties(int surveyId, params (string propertyName, string value)[] surveyParams) =>
         //    RequestAuthRPC(
@@ -184,10 +243,13 @@ namespace LimeSurveyTest
         private string EncodeString(string str) =>
             Convert.ToBase64String(_encoding.GetBytes(str));
 
-        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response) =>
-            JsonConvert.DeserializeObject<RPCResponse>(
+        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response)
+        {
+            Console.WriteLine(response.StatusCode);
+            return JsonConvert.DeserializeObject<RPCResponse>(
                 await response.Content.ReadAsStringAsync()
                 );
+        }
 
         private JObject CreateRPCObject(string method, JObject parameters) =>
             ConstructParameters(

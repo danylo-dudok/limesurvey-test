@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LimeSurveyTest
+﻿namespace LimeSurveyTest
 {
     public class RPCResponse
     {
