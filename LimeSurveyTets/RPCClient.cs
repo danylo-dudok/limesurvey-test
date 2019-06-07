@@ -245,13 +245,10 @@ namespace LimeSurveyTest
         private string EncodeString(string str) =>
             Convert.ToBase64String(_encoding.GetBytes(str));
 
-        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response)
-        {
-            Console.WriteLine(response.StatusCode);
-            return DeserializeString<RPCResponse>(
+        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response) =>
+            DeserializeString<RPCResponse>(
                 await response.Content.ReadAsStringAsync()
                 );
-        }
 
         private JObject CreateRPCObject(string method, JObject parameters) =>
             ConstructParameters(
