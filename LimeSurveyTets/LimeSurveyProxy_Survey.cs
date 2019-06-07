@@ -1,6 +1,7 @@
 ﻿using LimeSurveyTest.Models;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -8,6 +9,13 @@ namespace LimeSurveyTest
 {
     public partial class LimeSurveyProxy
     {
+        public async Task<IEnumerable<SurveyInfo>> ListSurveys()
+        {
+            var result = await RequestAuthRPC("list_surveys");
+
+            return DeserializeString<IEnumerable<SurveyInfo>>(result.Result.ToString());
+        }
+
         public Task<RPCResponse> ImportSurvey(int id, string name, string data, string type) =>
             RequestAuthRPC(
                 "import_survey",
@@ -35,6 +43,13 @@ namespace LimeSurveyTest
                 ("iSurveyID", JToken.FromObject(surveyId)),
                 ("sSurveyTitle", title),
                 ("sSurveyLanguage", language)
+                );
+
+        public Task<RPCResponse> CopySurvey(int surveyId, string newName) =>
+            RequestAuthRPC(
+                "add_survey",
+                ("iSurveyID_org", JToken.FromObject(surveyId)),
+                ("sNewname", newName)
                 );
 
         public Task<RPCResponse> DeleteSurvey(int surveyId) =>
