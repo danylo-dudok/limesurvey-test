@@ -1,5 +1,9 @@
-﻿namespace LimeSurveyTest.Models
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace LimeSurveyTest.Models
 {
+    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     public class QuestionInfo
     {
         public int Qid { get; set; }

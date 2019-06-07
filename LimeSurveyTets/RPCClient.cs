@@ -245,13 +245,10 @@ namespace LimeSurveyTest
         private string EncodeString(string str) =>
             Convert.ToBase64String(_encoding.GetBytes(str));
 
-        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response)
-        {
-            Console.WriteLine(response.StatusCode);
-            return DeserializeString<RPCResponse>(
+        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response) =>
+            DeserializeString<RPCResponse>(
                 await response.Content.ReadAsStringAsync()
                 );
-        }
 
         private JObject CreateRPCObject(string method, JObject parameters) =>
             ConstructParameters(
@@ -281,9 +278,7 @@ namespace LimeSurveyTest
         {
             try
             {
-                var res = JsonConvert.SerializeObject(obj, _serializerSettings);
-                Console.WriteLine(res);
-                return res;
+                return JsonConvert.SerializeObject(obj, _serializerSettings);
             }
             catch(JsonReaderException ex) when (obj != null)
             {
@@ -298,7 +293,7 @@ namespace LimeSurveyTest
             {
                 return JsonConvert.DeserializeObject<T>(str, _serializerSettings);
             }
-            catch (JsonWriterException ex)// when (!string.IsNullOrEmpty(str))
+            catch (JsonWriterException ex) when (!string.IsNullOrEmpty(str))
             {
                 Console.WriteLine(ex.Message);
                 return null;
