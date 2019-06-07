@@ -15,9 +15,13 @@ namespace LimeSurveyTest
             //var proxy = new LimeSurveyProxy(new Uri("https://helloworld.limequery.com/admin/remotecontrol"), "vezoctopmailer", "qwerty12345");
             var proxy = new LimeSurveyProxy(new Uri("http://localhost/index.php?r=admin/remotecontrol"), "admin", "admin");
             WriteLine(proxy.Login().GetAwaiter().GetResult().Result);
-            var lang = proxy.GetLanguageProperties(4).GetAwaiter().GetResult();
-            lang.SurveylsDescription = "This is my description to api";
-            WriteLine(proxy.SetLanguageProperties(4, lang).GetAwaiter().GetResult().Result);
+
+            //WriteLine(proxy.GetGroupProperties())
+
+            //var lang = proxy.GetLanguageProperties(4).GetAwaiter().GetResult();
+            //lang.SurveylsDescription = "This is my description to api";
+            //WriteLine(proxy.SetLanguageProperties(4, lang).GetAwaiter().GetResult().Result);
+
             //var info = proxy.GetSurveyProperties(4).GetAwaiter().GetResult();
             //WriteLine(JsonConvert.SerializeObject(info));
             //info.Active = "N";
