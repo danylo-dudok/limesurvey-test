@@ -17,19 +17,37 @@ namespace LimeSurveyTest
             var proxy = new LimeSurveyProxy(new Uri("http://localhost/index.php?r=admin/remotecontrol"), "admin", "admin");
             WriteLine(proxy.Login().GetAwaiter().GetResult().Result);
 
-            var newSurveyId = 12;
+            var newSurveyId = 13;
 
-            WriteLine(proxy.AddSurvey(newSurveyId, "Are you a human?", "en").GetAwaiter().GetResult().Result.ToString());
-            var survey = proxy.GetSurveyProperties(newSurveyId).GetAwaiter().GetResult();
-            var lang = proxy.GetLanguageProperties(newSurveyId).GetAwaiter().GetResult();
-            survey.Showwelcome = "Hello everyone";
-            lang.SurveylsDescription = "This survey is created to determine if you are a human or not.";
-            WriteLine(proxy.SetSurveyProperties(newSurveyId, survey).GetAwaiter().GetResult().Result.ToString());
-            WriteLine(proxy.SetLanguageProperties(newSurveyId, lang).GetAwaiter().GetResult().Result.ToString());
-            WriteLine(proxy.AddGroup(newSurveyId, "Some survey group", "This group created only in testings purposes.").GetAwaiter().GetResult());
-            var groupId = proxy.ListGroups(newSurveyId).GetAwaiter().GetResult().First().Gid;
-            WriteLine(proxy.ImportQuestion(newSurveyId, groupId, File.ReadAllText("../../../limesurvey_question_5.lsq"), "lsq", "hello").GetAwaiter().GetResult().Result);
-            WriteLine(proxy.ActivateSurvey(newSurveyId).GetAwaiter().GetResult().Result);
+            var token = proxy.ListParticipants(4, 0, 10).GetAwaiter().GetResult();
+            Console.WriteLine(JsonConvert.SerializeObject(token));
+            Console.WriteLine(JsonConvert.SerializeObject(proxy.GetResponseIds(4, token.First().Token).GetAwaiter().GetResult()));
+            //var response = new ResponseInfo
+            //{
+
+            //};
+            //Console.WriteLine(proxy.AddResponse(4, response).GetAwaiter().GetResult().Result);
+
+            //WriteLine(JsonConvert.SerializeObject(proxy.ExportResponses(4).GetAwaiter().GetResult()));
+
+            //var part = proxy.ListParticipants(12, 0, 10).GetAwaiter().GetResult().First();
+            //part.ParticipantInfo.Lastname = "Ivanov";
+            //WriteLine(JsonConvert.SerializeObject(proxy.GetParticipantProperties(12, 1).GetAwaiter().GetResult()));
+            //WriteLine(proxy.GetResponseIds(newSurveyId).GetAwaiter().GetResult().Result);
+
+            //WriteLine(JsonConvert.SerializeObject(proxy.ListParticipants(12, 0, 10).GetAwaiter().GetResult()));
+
+            //WriteLine(proxy.AddSurvey(newSurveyId, "A new survey", "en").GetAwaiter().GetResult().Result.ToString());
+            //var survey = proxy.GetSurveyProperties(newSurveyId).GetAwaiter().GetResult();
+            //var lang = proxy.GetLanguageProperties(newSurveyId).GetAwaiter().GetResult();
+            //survey.Showwelcome = "Hello not everyone";
+            //lang.SurveylsDescription = "This survey is created.";
+            //WriteLine(proxy.SetSurveyProperties(newSurveyId, survey).GetAwaiter().GetResult().Result.ToString());
+            //WriteLine(proxy.SetLanguageProperties(newSurveyId, lang).GetAwaiter().GetResult().Result.ToString());
+            //WriteLine(proxy.AddGroup(newSurveyId, "Survey group 2", "This group created for testing.").GetAwaiter().GetResult());
+            //var groupId = proxy.ListGroups(newSurveyId).GetAwaiter().GetResult().First().Gid;
+            //WriteLine(proxy.ImportQuestion(newSurveyId, groupId, File.ReadAllText("../../../limesurvey_question_5.lsq"), "lsq", "question1").GetAwaiter().GetResult().Result);
+            //WriteLine(proxy.ActivateSurvey(newSurveyId).GetAwaiter().GetResult().Result);
 
             // ../../../limesurvey_question_5.lsq
 
@@ -48,11 +66,6 @@ namespace LimeSurveyTest
             //var info = proxy.GetSurveyProperties(4).GetAwaiter().GetResult();
             //WriteLine(JsonConvert.SerializeObject(info));
             //info.Active = "N";
-            //WriteLine(proxy.SetSurveyProperties(4, info).GetAwaiter().GetResult().Result);
-            //WriteLine(JsonConvert.SerializeObject(proxy.GetSurveyProperties(4).GetAwaiter().GetResult()));
-            //WriteLine(proxy.ActivateSurvey(4).GetAwaiter().GetResult().Result);
-            //WriteLine(proxy.DeleteSurvey(2).GetAwaiter().GetResult().Result);
-            //WriteLine(proxy.AddSurvey(4, "hello earthians", "en").GetAwaiter().GetResult().Result);
             //WriteLine(proxy.GetSummary(4).GetAwaiter().GetResult().CompletedResponses);
             //WriteLine(proxy.ImportSurvey(2, "test10", File.ReadAllText("../../../Limesurvey_sample_survey_Assessment.lss"), "lss").GetAwaiter().GetResult().Result);
             ReadKey();

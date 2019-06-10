@@ -33,7 +33,7 @@
     <gid><![CDATA[3]]></gid>
     <type><![CDATA[M]]></type>
     <title><![CDATA[a11]]></title>
-    <question><![CDATA[Are you human? Tell me honestly.]]></question>
+    <question><![CDATA[Will you answer the question?.]]></question>
     <preg/>
     <help><![CDATA[Help me!!!]]></help>
     <other><![CDATA[N]]></other>

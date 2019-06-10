@@ -1,10 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using LimeSurveyTest.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -15,27 +12,34 @@ namespace LimeSurveyTest
     public partial class LimeSurveyProxy
     {
         private int idCounter;
-        private string _username;
+
+        public string Username { get; }
+        public Uri Uri { get; }
+
         private string _password;
         private string _sessionKey;
         private readonly string _dataType;
         private readonly Encoding _encoding;
-        private Uri Uri { get; }
         private readonly HttpClient _client;
         private readonly DefaultContractResolver _contractResolver;
         private readonly JsonSerializerSettings _serializerSettings;
 
         public LimeSurveyProxy(Uri uri, string username, string password)
+            : this(Encoding.UTF8, new SnakeCaseNamingStrategy())
         {
-            _username = username;
+            Username = username;
             _password = password;
             Uri = uri;
+        }
+
+        protected LimeSurveyProxy(Encoding encoding, NamingStrategy naming)
+        {
             _client = new HttpClient();
             _dataType = "application/json";
             _encoding = Encoding.UTF8;
             _contractResolver = new DefaultContractResolver
             {
-                NamingStrategy = new SnakeCaseNamingStrategy()
+                NamingStrategy = naming
             };
             _serializerSettings = new JsonSerializerSettings
             {
@@ -44,7 +48,7 @@ namespace LimeSurveyTest
             };
         }
 
-        private async Task<RPCResponse> RequestAuthRPC(string rpcMethod, params (string propertyName, JToken value)[] rpcParams) =>
+        public async Task<RPCResponse> RequestAuthRPC(string rpcMethod, params (string propertyName, JToken value)[] rpcParams) =>
             await ConvertResponse(
                 await Post(
                     CreateAuthRPCObject(
@@ -54,7 +58,7 @@ namespace LimeSurveyTest
                     )
                 );
 
-        private async Task<RPCResponse> RequestRPC(string rpcMethod, params (string propertyName, JToken value)[] rpcParams) =>
+        public async Task<RPCResponse> RequestRPC(string rpcMethod, params (string propertyName, JToken value)[] rpcParams) =>
             await ConvertResponse(
                 await Post(
                     CreateRPCObject(
@@ -64,7 +68,7 @@ namespace LimeSurveyTest
                     )
                 );
 
-        private Task<HttpResponseMessage> Post(object value) =>
+        protected Task<HttpResponseMessage> Post(object value) =>
             _client.PostAsync(
                 Uri,
                 new StringContent(
@@ -73,15 +77,28 @@ namespace LimeSurveyTest
                     _dataType
                     ));
 
-        private string EncodeString(string str) =>
+        public string EncodeString(string str) =>
             Convert.ToBase64String(_encoding.GetBytes(str));
 
-        private async Task<RPCResponse> ConvertResponse(HttpResponseMessage response) =>
-            DeserializeString<RPCResponse>(
+        public string DecodeString(string str) =>
+            _encoding.GetString(Convert.FromBase64String(str));
+
+        protected async Task<RPCResponse> ConvertResponse(HttpResponseMessage response)
+        {
+            var rpc = DeserializeString<RPCResponse>(
                 await response.Content.ReadAsStringAsync()
                 );
 
-        private JObject CreateRPCObject(string method, JObject parameters) =>
+            var result = rpc.Result.ToString();
+            rpc.Status =
+                result.Contains("\"status\"")
+                ? JToken.Parse(result)["status"]?.ToString()
+                : string.Empty;
+
+            return rpc;
+        }
+
+        protected JObject CreateRPCObject(string method, JObject parameters) =>
             ConstructParameters(
                 ("jsonrpc", "2.0"),
                 ("id", ++idCounter),
@@ -89,7 +106,7 @@ namespace LimeSurveyTest
                 ("params", parameters)
                 );
 
-        private JObject ConstructParameters(params (string propertyName, JToken value)[] jParams)
+        public JObject ConstructParameters(params (string propertyName, JToken value)[] jParams)
         {
             var parameters = new JObject();
             foreach (var param in jParams)
@@ -99,34 +116,32 @@ namespace LimeSurveyTest
             return parameters;
         }
 
-        private JObject CreateAuthRPCObject(string method, JObject parameters)
+        protected JObject CreateAuthRPCObject(string method, JObject parameters)
         {
             parameters.AddFirst(new JProperty("sSessionKey", _sessionKey));
             return CreateRPCObject(method, parameters);
         }
 
-        private string SerializeObject(object obj)
+        protected string SerializeObject(object obj)
         {
             try
             {
                 return JsonConvert.SerializeObject(obj, _serializerSettings);
             }
-            catch(JsonReaderException ex) when (obj != null)
+            catch(JsonSerializationException) when (obj != null)
             {
-                Console.WriteLine(ex.Message);
                 return null;
             }
         }
 
-        private T DeserializeString<T>(string str) where T : class
+        protected T DeserializeString<T>(string str) where T : class
         {
             try
             {
                 return JsonConvert.DeserializeObject<T>(str, _serializerSettings);
             }
-            catch (JsonWriterException ex) when (!string.IsNullOrEmpty(str))
+            catch (JsonSerializationException) when (!string.IsNullOrEmpty(str))
             {
-                Console.WriteLine(ex.Message);
                 return null;
             }
         }

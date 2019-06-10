@@ -8,7 +8,7 @@ namespace LimeSurveyTest
         {
             var result = await RequestRPC(
                 "get_session_key",
-                ("username", _username),
+                ("username", Username),
                 ("password", _password)
                 );
             _sessionKey = result.Result.ToString();
